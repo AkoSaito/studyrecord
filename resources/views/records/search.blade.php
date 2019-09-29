@@ -25,7 +25,7 @@
                         <a>{{ $record->id }}</a>
                         <a>{{ $record->created_at }}</a>
                     </div>
-@endforeach
+                @endforeach
             </ul>
     </div>
 </body>

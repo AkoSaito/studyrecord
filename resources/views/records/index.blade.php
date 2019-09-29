@@ -1,37 +1,90 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <title>チリツモ</title>
-  <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body>
-    <div class="container">
-        <h1>チリツモ</h1>
-        <section class="header_menu">
-            <a href="{{ action('RecordsController@create') }}">今日の記録</a>
-            <a href="{{ action('CategoriesController@maintenance') }}">カテゴリ一覧</a>
-        </section>
+@extends('layouts.default')
+@section('title', '学習記録')
 
-        <section class="records_list">
-            @forelse ($records as $record)
-                <ul>
-                    <li>{{ $record->category->name }}</li>
-                    <li>{{ $record->time }}時間</li>
-                    <li>{{ $record->created_at }}</li>
-                    <form method="POST" action="/records/delete/{{$record->id}}" >
-                        {{ csrf_field() }}
+@section('content')
+<section class="records_list">
 
-                        <input type="submit" value="削除" name="del_btn" onclick='return confirm("削除してよろしいですか？");'>
-                    </form>
-                </ul>
+    <form action="{{ action('RecordsController@index')}}" method="GET">
+        @csrf
+        <div class="search-bar">
+        <div class="form-group form-inline">
+            {{--カテゴリ絞り込み検索--}}
+            <label>カテゴリ名</label>
+            <select class="form-control" name="category">
+                <option value="">選択してください</option>
+            @forelse($categories as $category)
+                <option value="{{$category->id}}" @if( "{{$category->id}}" === "{{$selectedCategory}}" ) selected @else "" @endif >{{$category->name}}</option>
             @empty
-                <p class="error">記録がありません。</p>
+                <p>カテゴリーがありません。</p>
             @endforelse
-        </section>
-        {{-- ページネーションバー--}}
-        <span class="pagination">{{ $records->links() }}</span>
-    </div>
-    <script src="/js/main.js"></script>
-</body>
-</html>
+            </select>
+
+            {{--表示期間絞り込み検索--}}
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="day" {{ $selectedPeriod == 'day' ? 'checked' : '' }}>
+                <label class="form-check-label">日</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="week"
+                {{ $selectedPeriod == 'week' ? 'checked' : '' }}>
+                <label class="form-check-label">週</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="month"
+                {{ $selectedPeriod == 'month' ? 'checked' : '' }}>
+                <label class="form-check-label">月</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="year"
+                {{ $selectedPeriod == 'year' ? 'checked' : '' }}>
+                <label class="form-check-label">年</label>
+            </div>
+            <div class="form-check"><button type="submit" class="btn btn-primary">検索</button></div>
+        </div>
+        </div>
+    </form>
+
+    {{--circleProgressBar--}}
+    <div class="wrapper">
+      <div class="row">
+        <div class="col">
+          <div class="counter" data-cp-percentage={{$sumForProgress}} data-cp-color="#00bfeb">
+          </div>
+          <h4>合計：{{$sum}}時間</h4>
+        </div>
+      </div>
+      </div>
+
+      {{--学習記録リスト--}}
+      @forelse ($records as $record)
+      <div class="container">
+          <div class="row">
+              <div class="col">{{ $record->category->name }}</div>
+              <div class="col">{{ $record->created_at }}</div>
+              <div class="col">{{ $record->time }}時間</div>
+              <form action="/records/delete/{{$record->id}}" method="POST">
+                  @csrf
+                  <div class="col">
+                      <button type="submit" class="btn btn-outline-primary" class="del_btn" onclick='return confirm("削除してよろしいですか？");'>削除</button>
+                  </div>
+              </form>
+              <div class="col">
+                  <div class="progress">
+                      <div class="progress-bar bg-warning" role="progressbar" style='width:{{$record->time}}%' aria-valuenow="{{$record->time}}" aria-valuemin="0" aria-valuemax="100">{{$record->time}}h</div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+    @empty
+        <p class="error">記録がありません。</p>
+    @endforelse
+</section>
+
+
+
+{{-- ページネーションバー--}}
+<span class="pagination">{{ $records->appends($selectedCategory)->appends($selectedPeriod)->links() }}</span>
+
+<script src="/js/main.js"></script>
+@endsection

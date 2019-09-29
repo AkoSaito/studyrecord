@@ -1,29 +1,33 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <title>チリツモ</title>
-  <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body>
-    <div class="container">
-        <h1>今日の記録</h1>
-        <section class="header_menu">
-            <a href="{{url('/')}}" class="header-menu">戻る</a>
-        </section>
+@extends('layouts.default')
+@section('title', '学習記録')
 
-        <form method="POST" action="{{ url('/records') }}">
-              {{ csrf_field() }}
-              <p>言語<select name="category">
-                    @forelse ($categories as $category)
-                        <option value="{{$category->id}}">{{$category->name}}</option></p>
-                    @empty
-                        <li>カテゴリーデータがありません。</li>
-                    @endforelse
-              </select>
-              <p><input type="text" name="time" placeholder="2">時間</p>
-              <p><input type="submit" value="登録" name="submit_btn"></p>
-        </form>
-    </div>
-</body>
-</html>
+@section('content')
+    <form method="POST" action="{{ url('/records') }}">
+          @csrf
+            {{--カテゴリ検索--}}
+            <div class="create-container">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <select class="form-control" name="category">
+                          @forelse ($categories as $category)
+                              <option value="{{$category->id}}" >{{$category->name}}</option>
+                          @empty
+                              <p>カテゴリデータがありません。</p>
+                          @endforelse
+                        </select>
+                    </div>
+                </div>
+                {{--時間テキストボックス--}}
+                <div class="row">
+                    <div class="col-xs-12">
+                        <input type="text" class="form-control" name="time" placeholder="2h" value="{{old('time')}}">
+
+                    @if($errors->has('time'))
+                        <p class="error">学習時間を正しく入力してください。</p>
+                    @endif
+                    </div>
+                </div>
+          </div>
+              <span class="register-btn"><button type="submit" class="btn btn-primary">登録</button></span>
+    </form>
+@endsection

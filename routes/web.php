@@ -11,12 +11,15 @@
 |
 */
 //RecordsController  勉強記録
-Route::get('/', 'RecordsController@index');
+Route::get('/', [
+    'uses' => 'RecordsController@index',
+    'as' => 'records.index'
+]);
 Route::get('/records/create', 'RecordsController@create');
 Route::post('/records', 'RecordsController@store');
 Route::post('/records/delete/{id}', 'RecordsController@destroy');
 
-//CategoriesController  カテゴリー
+//CategoriesController  カテゴリ
 Route::get('/categories/maintenance', 'CategoriesController@maintenance');
 Route::get('/categories', 'CategoriesController@create');
 Route::post('categories', 'CategoriesController@store');

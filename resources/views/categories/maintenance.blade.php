@@ -1,34 +1,25 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <title>チリツモ</title>
-  <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body>
-    <div class="container">
-        <h1>カテゴリーメンテナンス（一覧）</h1>
-        <section class="header_menu">
-            <a href="{{url('/')}}">戻る</a>
-            <a href="{{ action('CategoriesController@create' )}}">登録</a>
-        </section>
-        <section class="category_list">
-            @forelse($categories as $category)
-                <ul>
-                    <li class="title">
-                        <span class="name">{{$category->name}}</span>
-                    </li>
+@extends('layouts.default')
+@section('title', '学習記録')
 
-                    <form method="POST" action="/categories/delete/{{$category->id}}" >
-                        {{ csrf_field() }}
+@section('content')
+    <section class="category_list">
+          <div class="maintenance-container">
+              @forelse($categories as $category)
+                  <div class="row">
+                      <div class="col">
+                            {{$category->name}}
+                      </div>
 
-                        <input type="submit" value="削除" name="del_btn" onclick='return confirm("削除してよろしいですか？");'>
-                    </form>
-                </ul>
-            @empty
-                <p class="error">カテゴリー名がありません。</p>
-            @endforelse
-        </section>
-    </div>
-</body>
-</html>
+                      <form action="/categories/delete/{{$category->id}}" method="POST">
+                          @csrf
+                          <div class="col">
+                                <button type="submit" class="btn btn-primary" value="削除" name="del_btn" onclick='return confirm("削除してよろしいですか？");'>削除</button>
+                          </div>
+                      </form>
+                 </div>
+              @empty
+                  <p class="error">カテゴリー名がありません。</p>
+              @endforelse
+          </div>
+    </section>
+@endsection
