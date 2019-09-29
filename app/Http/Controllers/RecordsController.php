@@ -16,6 +16,8 @@ class RecordsController extends Controller
     //************************
     // 学習時間の一覧を表示する。
     // カテゴリ・表示期間で絞り込み可
+    // 表示期間は直近のみ（今日・今週・今月・今年）
+    // →のちのち過去データも見られるようにしたい・・・
     // 1ページ10件、作成日時の昇順で表示
     // CircleProgress：
     //    学習時間が100時間未満もしくは絞り込み検索時は、100時間で1周
@@ -27,8 +29,8 @@ class RecordsController extends Controller
      *         records:一覧表示用 Recordsテーブル,Categoriesテーブル
      *         selectedCategory: int GET category_id（カテゴリ検索）
      *         selectedPeriod: string GET inlineRadioOptions(表示期間検索)
-     *         sum: 合計学習時間
-     *         sumForProgress: 合計学習時間（CircleProgress用100分の1の時間）
+     *         sum: int 合計学習時間
+     *         sumForProgress:int 合計学習時間（CircleProgress用100分の1の時間）
      */
     public function index(Request $request)
     {
@@ -71,22 +73,23 @@ class RecordsController extends Controller
          }
 
          //週別表示
-        if($selectedPeriod === "week"){
-            $today = Carbon::now();
-            $startOfWeek = $today->startOfWeek();
-            $formattedStartOfWeek = $startOfWeek . " " . "00:00:00";
-            $endOfWeek = $today->endOfWeek();
-            $formattedEndOfWeek = $endOfWeek . " " . "00:00:00";
+         if($selectedPeriod === "week"){
+             $today = Carbon::now();
+             $startOfWeek = $today->startOfWeek();
+             $formattedStartOfWeek = $startOfWeek . " " . "00:00:00";
+             $endOfWeek = $today->endOfWeek();
+             $formattedEndOfWeek = $endOfWeek . " " . "00:00:00";
 
-            $records = $records->where('created_at', '>=', $formattedStartOfWeek)
-                                 ->where('created_at', '<=', $formattedEndOfWeek);
+             $records = $records->where('created_at', '>=',  $formattedStartOfWeek)
+                                ->where('created_at', '<=', $formattedEndOfWeek);
              //学習時間合計値
              $sum = DB::table('records')->where('created_at', '>=', $formattedStartOfWeek)
-                                  ->where('created_at', '<=', $formattedEndOfWeek)->sum('time');
+                                        ->where('created_at', '<=', $formattedEndOfWeek)->sum('time');
 
              if($selectedCategory){
                 $sum = DB::table('records')->where('created_at', '>=', $formattedStartOfWeek)
-                    ->where('created_at', '<=', $formattedEndOfWeek)->where('category_id', $selectedCategory)->sum('time');
+                    ->where('created_at', '<=', $formattedEndOfWeek)
+                    ->where('category_id', $selectedCategory)->sum('time');
              }
         }
 
@@ -123,15 +126,18 @@ class RecordsController extends Controller
 
             //学習時間合計値
             $sum = DB::table('records')->where('created_at', '>=', $formattedStartOfYear)
-                                ->where('created_at', '<=', $formattedEndOfYear)->sum('time');
+                                       ->where('created_at', '<=', $formattedEndOfYear)->sum('time');
             if($selectedCategory){
                  $sum = DB::table('records')->where('created_at', '>=', $formattedStartOfYear)
-                 ->where('created_at', '<=', $formattedEndOfYear)->where('category_id', $selectedCategory)->sum('time');
+                 ->where('created_at', '<=', $formattedEndOfYear)
+                 ->where('category_id', $selectedCategory)->sum('time');
             }
         }
+
         $records->with('category');
         $records = $records->paginate(10);
 
+        //ページング値引き継ぎ用
         $records->appends([
             'category' => $selectedCategory,
             'inlineRadioOptions' => $selectedPeriod
